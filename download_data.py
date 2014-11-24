@@ -101,10 +101,55 @@ def download_and_extract(source_url, header_url, dem_files, target):
 
 
 if __name__ == '__main__':
+    print """
+                                                                                
+                                                                                
+                                                                                
+                             `...----:-----:---...``                            
+                        `.--:-----------------------:-.`  ` `                   
+                     .----------------------------------:-.` `.                 
+                  `----------------------------------------:-. .                
+                .-:--------------------------------------------.                
+              `-:-----------------------------------------------:. .:           
+             -:--------------------------------------------------/o- ``         
+           .o:-----------sNNNNm:-hNNNNs-sNNNNm::mNNNNs--------+dNMMMo ``        
+          :NMNh+---------sMs-dM/-NM:/Mh-hMs/NM::Mm/sMy------/mMMMMMMMh``.       
+         /MMMMMMmo:------sMs-dM/-NM:/Mh-hMdhMM::MNhmMy-----sMMMMMMMMMMs``       
+        -MMMMMMMMMNo-----sMs-dM/-NMyhMh-hM+-mM::Mm-oMy----hMMMMMMMMMmo+/ ..     
+       `NMMMMMMMMMMMm+---/o/-+o:-/oooo:-+o:-oo::o+-/o+---hMMMMMMMMMy++++: :     
+       oNMMMMMMMMMMMMMh:--------------------------------hMMMMMMMMmo++++++``.    
+      `++shNMMMMMMMMMMMN+------------------------------hMMMMMMMMh++++++++/ .    
+      -+++++hMMMMMMMMMMMMh:---------------------------hMMMMMMMmo++++++++++ ``   
+      /++++++odMMMMMMMMMMMN+-------------------------yMMMMMMNy++++++++++++. -   
+      /++++++++smMMMMMMMMMMMd/---------------------:hMMMMMNh++++++++++++++.     
+      /++++++++++smMMMMMMMMMMMd+------------------+mMMMMmy++++++++++++++++. .   
+      /++++++++++++sdNMMMMMMMMMMmo:-------------/hMMMmho++++++++++++++++++. `   
+      -+++++++++++++++sdNMMMMMMMMMMdy+:------/odMNdyo+++++++++++++++++++++  `   
+      `++++++++++++++++++oydmMMMMMMMMMMNddddNMMMmdmmmmmh+++++++++++++++++/ +    
+       /++++++++++++++++++++++osyhhddddmMMMMMMMNdhysoo+++++++++++++++++++.``    
+       `+++++++++++++++++++++++++++oshmMMMMNdyo+++++++++++++++++++++++++: `     
+        .++++++++++++++++++++osyhmNMMMMMmyo+++++++++++++++++++++++++++++  `     
+         -+++++++++++++++++++oyhdddddys++++++++++++++++++++++++++++++++`        
+          -++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/`         
+           .++++++++++++++++++++++++++++++++++++++++++++++++++++++++:           
+            `:+++++++++++++++++++++++++++++++++++++++++++++++++++++.            
+              ./+++++++++++++++++++++++++++++++++++++++++++++++++:              
+                ./+++++++++++++++++++++++++++++++++++++++++++++:`               
+                  `:++++++++++++++++++++++++++++++++++++++++/-                  
+                     .:++++++++++++++++++++++++++++++++++/-`                    
+                        .-:++++++++++++++++++++++++++/:.`                       
+                            `.-:://+++++++++++//:-.`                            
+                                                                                
+                                                                                
+                Source: National Geophysical Data Center
+                URL: http://www.ngdc.noaa.gov/mgg/topo/gltiles.html
+                                                                                
+    """
+
     args = get_args(sys.argv[1:],
         source_url='http://www.ngdc.noaa.gov/mgg/topo/DATATILES/elev/',
         header_url='http://www.ngdc.noaa.gov/mgg/topo/elev/esri/hdr/',
-        dem_files='a10g',
+        dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g',
         target=''
     )
     download_and_extract(*args)
