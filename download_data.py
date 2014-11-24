@@ -1,4 +1,8 @@
+from zipfile import ZipFile
 import urllib2
+
+SOURCE = 'http://www.ngdc.noaa.gov/mgg/topo/DATATILES/elev/'
+DEM_FILES = 'a10g'
 
 def download_file(url, file_name):
     # Source: http://stackoverflow.com/a/22776
@@ -24,9 +28,13 @@ def download_file(url, file_name):
     f.close()
 
 if __name__ == '__main__':
-    url = "http://www.ngdc.noaa.gov/mgg/topo/DATATILES/elev/a10g.zip"
-    file_name = url.split('/')[-1]
-    download_file(url, file_name)
+    for dem_file in DEM_FILES.split(','):
+        url = '%s%s.zip' % (SOURCE, DEM_FILES)
+        file_name = url.split('/')[-1]
+        download_file(url, file_name)
+
+        with ZipFile(file_name, 'r') as zf:
+            zf.extractall()
 
 
 
