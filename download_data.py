@@ -2,6 +2,7 @@ import zipfile
 import urllib2
 import sys
 import getopt
+import os
 
 def download_file(url, file_name):
     """
@@ -73,7 +74,12 @@ def download_and_extract(source, dem_files):
             print 'Invalid zip file provided at: %s' % url
             sys.exit(2)
 
+        # extract the file
         zf.extractall()
+        zf.close()
+
+        # remove the file
+        os.remove(file_name)
 
 
 
