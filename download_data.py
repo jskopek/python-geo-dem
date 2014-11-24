@@ -36,56 +36,67 @@ def download_file(url, file_name):
 
     f.close()
 
-def get_args(argv, source=None, dem_files=None):
+def get_args(argv, source_url=None, header_url=None, dem_files=None):
     """
     Parases any custom arguments from the command line, reverting to the the default if none passed
-    Returns a (source, dem_files) pair of arguments.
+    Returns a (source_url, header_url, dem_files) pair of arguments.
     """
 
     try:
-        options, args = getopt.getopt(argv, 's:d:', ['source_url=','dem_files='])
+        options, args = getopt.getopt(argv, 's:h:d:', ['source-url=','header-url=','dem-files='])
     except getopt.GetoptError:
-        print 'download_data.py -s <source_url> -d <dem_files>'
-        print '  -s, --source_url: The root URI folder that contains the dem files'
-        print '  -d, --dem_files:  A comman separated list of DEM files that we wish to download (e.g. a10g,f10h)'
+        print 'download_data.py -s <sourceurl> -h <headerurl> -d <demfiles>'
+        print '  -s, --source-url: The root URI folder that contains the dem files'
+        print '  -h, --header-url: The root URI folder that contains the dem files'
+        print '  -d, --dem-files:  A comman separated list of DEM files that we wish to download (e.g. a10g,f10h)'
         sys.exit(2)
 
     for opt, val in options:
-        if opt in ['-s', '--source_url']:
-            source = val
-        elif opt in ['-d', '--dem_files']:
+        if opt in ['-s', '--source-url']:
+            source_url = val
+        if opt in ['-h', '--header-url']:
+            header_url = val
+        elif opt in ['-d', '--dem-files']:
             dem_files = val
 
-    return (source, dem_files)
+    return (source_url, header_url, dem_files)
         
-def download_and_extract(source, dem_files):
+def download_and_extract(source_url, header_url, dem_files):
     """
     Download each dem file from the source and extract it
     """
 
     for dem_file in dem_files.split(','):
-        url = '%s%s.zip' % (source, dem_file)
-        file_name = url.split('/')[-1]
-        download_file(url, file_name)
+        # download source file
+        full_source_url = '%s%s.zip' % (source_url, dem_file)
+        source_file_name = full_source_url.split('/')[-1]
+        download_file(full_source_url, source_file_name)
 
+        # download header file
+        full_header_url = '%s%s.hdr' % (header_url, dem_file)
+        header_file_name = full_header_url.split('/')[-1]
+        download_file(full_header_url, header_file_name)
+
+        # extract the source file
         try:
-            zf = zipfile.ZipFile(file_name, 'r')
+            zf = zipfile.ZipFile(source_file_name, 'r')
         except zipfile.BadZipfile:
             print 'Invalid zip file provided at: %s' % url
             sys.exit(2)
+        else:
+            zf.extractall()
+            zf.close()
 
-        # extract the file
-        zf.extractall()
-        zf.close()
-
-        # remove the file
-        os.remove(file_name)
+        # remove the source file
+        os.remove(source_file_name)
 
 
 
 if __name__ == '__main__':
-    source, dem_files = get_args(sys.argv[1:],
-        source='http://www.ngdc.noaa.gov/mgg/topo/DATATILES/elev/',
+    args = get_args(sys.argv[1:],
+        source_url='http://www.ngdc.noaa.gov/mgg/topo/DATATILES/elev/',
+        header_url='http://www.ngdc.noaa.gov/mgg/topo/elev/esri/hdr/',
         dem_files='a10g'
     )
-    download_and_extract(source, dem_files)
+    print args
+    download_and_extract(*args)
