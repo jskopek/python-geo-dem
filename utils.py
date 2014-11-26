@@ -6,7 +6,7 @@ import os
 import sys
 
 
-def altitude_at_raster_range(dataset, x1, y1, x2, y2):
+def altitude_at_raster_range(x1, y1, x2, y2, dataset):
     """
     Returns a two dimensional matrix of altitudes, in meters, for a range of two x/y raster points. 
     Requires a DEM dataset with corresponding data for the given x/y points
@@ -30,39 +30,51 @@ def altitude_at_raster_range(dataset, x1, y1, x2, y2):
         data.append(values)
     return data
 
-def altitude_at_raster_point(dataset, x, y):
+def altitude_at_raster_point(x, y, dataset):
     """
     Returns the altitude, in meters, for a given x/y raster point. Requires a DEM dataset with 
     corresponding data for the given x/y point
     """
 
-    values = altitude_at_raster_range(dataset, x, y, x, y)
+    values = altitude_at_raster_range(x, y, x, y, dataset)
     return values[0][0]
 
-def altitude_at_geographic_range(dataset, lon1, lat1, lon2, lat2):
+def altitude_at_geographic_range(lon1, lat1, lon2, lat2, dataset=None):
     """
     Returns a two dimensional matrix of altitudes, in meters, for a given longitude/latitude range. 
     Requires a DEM dataset with corresponding data for the given lon/lat values
     """
 
-    x1, y1 = geographic_coordinates_to_raster_points(dataset, lon1, lat1)
-    x2, y2 = geographic_coordinates_to_raster_points(dataset, lon2, lat2)
-    return altitude_at_raster_range(x1, y1, x2, y2)
+    # load a dataset if one is not provided
+    if not dataset:
+        dataset = load_dataset(lon1, lat1)
 
-def altitude_at_geographic_coordinates(dataset, lon, lat):
+    x1, y1 = geographic_coordinates_to_raster_points(lon1, lat1, dataset)
+    x2, y2 = geographic_coordinates_to_raster_points(lon2, lat2, dataset)
+    return altitude_at_raster_range(x1, y1, x2, y2, dataset)
+
+def altitude_at_geographic_coordinates(lon, lat, dataset=None):
     """
     Returns the altitude, in meters, for a given longitude/latitude coordinate. Requires a DEM dataset with 
     corresponding data for the given lon/lat
     """
 
-    x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
-    return altitude_at_raster_point(dataset, x, y)
+    # load a dataset if one is not provided
+    if not dataset:
+        dataset = load_dataset(lon, lat)
 
-def geographic_coordinates_to_raster_points(dataset, lon, lat):
+    x, y = geographic_coordinates_to_raster_points(lon, lat, dataset)
+    return altitude_at_raster_point(x, y, dataset)
+
+def geographic_coordinates_to_raster_points(lon, lat, dataset=None):
     """
     Converts a set of lon/lat points to x/y points using affine transformation. Note that the conversion is tied to the
     particular dataset. A particular lon/lat value will result in a different x/y point accross different datasets
     """
+
+    # load a dataset if one is not provided
+    if not dataset:
+        dataset = load_dataset(lon, lat)
 
     # affine transformation to convert x/y points into lat/lon points
     transform = dataset.GetGeoTransform()
@@ -75,7 +87,7 @@ def geographic_coordinates_to_raster_points(dataset, lon, lat):
 
     return (x,y)
 
-def get_dem(dem_paths, lon, lat):
+def get_dem(lon, lat, dem_paths=None):
     """
     Given a particular longitude and latitude, loops though a list of dem paths until it finds a
     file that contains data on that point
@@ -83,12 +95,15 @@ def get_dem(dem_paths, lon, lat):
     TODO: there's got to be a better way of determining which DEM file contains lon/lat
     """
 
+    if not dem_paths:
+        dem_paths = default_dem_paths()
+
     for dem_path in dem_paths:
         dataset = gdal.Open(dem_path)
-        x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
+        x, y = geographic_coordinates_to_raster_points(lon, lat, dataset)
 
         try:
-            altitude_at_raster_point(dataset, x, y)
+            altitude_at_raster_point(x, y, dataset)
         except struct.error:
             continue
         else:
@@ -96,34 +111,20 @@ def get_dem(dem_paths, lon, lat):
 
     return False
 
-def load_dataset(dem_paths, lon, lat):
+def load_dataset(lon, lat, dem_paths=None):
     """
     Simple convenience method to wrap the initialization of a dem file into a dataset
     """
-    dem_path = get_dem(dem_paths, lon, lat)
+
+    dem_path = get_dem(lon, lat, dem_paths)
     return gdal.Open(dem_path)
 
+def default_dem_paths():
+    """
+    Assuming a default `download_data.py` command was run, method generates a list of paths
+    for where the extracted data should have gone
+    """
 
-#lat = 49.456412
-#lon = -123.186007
-#
-#lat=50
-#lon=-122
-#dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
-#dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
-#dem_path = get_dem(dem_paths, lon, lat)
-#print dem_path
-#dataset = gdal.Open(dem_path)
-#x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
-#print x, y
-#values = altitude_at_raster_point(dataset, x, y)
-#print values
-#
-
-lat=50
-lon=-122
-dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
-dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
-dataset = load_dataset(dem_paths, lon, lat)
-print altitude_at_geographic_coordinates(dataset, lon, lat)
-
+    dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
+    dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
+    return dem_paths
