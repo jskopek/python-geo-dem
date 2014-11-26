@@ -128,3 +128,4 @@ def default_dem_paths():
     dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
     dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
     return dem_paths
+
