@@ -6,9 +6,14 @@ import os
 import sys
 
 
-def calculate(dataset, min_x, min_y, max_x, max_y):
+def altitude_at_raster_range(dataset, x1, y1, x2, y2):
     # the altitude data will be stored in raster band 1
     dem_band = dataset.GetRasterBand(1)
+
+    min_x = int(min(x1, x2))
+    max_x = int(max(x1, x2))
+    min_y = int(min(y1, y2))
+    max_y = int(max(y1, y2))
 
     scanline_width = max_x - min_x + 1
     scanline_data_format = "<" + ("h" * scanline_width)
@@ -20,50 +25,67 @@ def calculate(dataset, min_x, min_y, max_x, max_y):
         data.append(values)
     return data
 
-def calculate_point_coordinates(dataset, min_lat, min_lon, max_lat, max_lon):
-    # determine the min & max x & y coordinates on the dataset from the lat/lon values
+def altitude_at_raster_point(dataset, x, y):
+    values = altitude_at_raster_range(dataset, x, y, x, y)
+    return values[0][0]
+
+def altitude_at_geographic_range(dataset, lon1, lat1, lon2, lat2):
+    x1, y1 = geographic_coordinates_to_raster_points(dataset, lon1, lat1)
+    x2, y2 = geographic_coordinates_to_raster_points(dataset, lon2, lat2)
+    return altitude_at_raster_range(x1, y1, x2, y2)
+
+def altitude_at_geographic_coordinates(dataset, lon, lat):
+    x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
+    return altitude_at_raster_point(dataset, x, y)
+
+def geographic_coordinates_to_raster_points(dataset, lon, lat):
+    """
+    Converts a set of lon/lat points to x/y points using affine transformation. Note that the conversion is tied to the
+    particular dataset. A particular lon/lat value will result in a different x/y point accross different datasets
+    """
+    # affine transformation to convert x/y points into lat/lon points
     transform = dataset.GetGeoTransform()
+
+    # invert transformation so we can convert lat/lon to x/y
     success, transform_inverse = gdal.InvGeoTransform(transform)
 
-    x1, y1 = gdal.ApplyGeoTransform(transform_inverse, min_lon, min_lat)
-    x2, y2 = gdal.ApplyGeoTransform(transform_inverse, max_lon, max_lat)
+    # apply transformation
+    x, y = gdal.ApplyGeoTransform(transform_inverse, lon, lat)
 
-    min_x = int(min(x1, x2))
-    max_x = int(max(x1, x2))
-    min_y = int(min(y1, y2))
-    max_y = int(max(y1, y2))
+    return (x,y)
 
-    return (min_x, min_y, max_x, max_y)
+def get_dem(dem_paths, lon, lat):
+    """
+    Given a particular longitude and latitude, loops though a list of dem paths until it finds a
+    file that contains data on that point
 
+    TODO: there's got to be a better way of determining which DEM file contains lon/lat
+    """
+    for dem_path in dem_paths:
+        dataset = gdal.Open(dem_path)
+        x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
 
-def calculate_with_all_dems(min_lat, min_lon, max_lat, max_lon):
-    dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
-    for dem_file in dem_files.split(','):
-        dem_path = os.path.join('store', dem_file)
         try:
-            dataset = gdal.Open(dem_path)
-            coordinates = calculate_point_coordinates(dataset, min_lat, min_lon, max_lat, max_lon)
-            data = calculate(dataset, *coordinates)
+            altitude_at_raster_point(dataset, x, y)
         except struct.error:
             continue
         else:
-            return data
+            return dem_path
 
-# these are the min/max lon/lat coordinates of NZ
-#min_lon = 165
-#max_lon = 179
-#min_lat = -48
-#max_lat = -33
-#
-#min_lon = -133
-#max_lon = -110
-#min_lat = 51
-#max_lat = 58.2
-#
-#min_lon = -128.8
-#max_lon = -120
-#min_lat = 48
-#max_lat = 49.95
-#
-print calculate_with_all_dems(min_lat=48, min_lon=-128.8, max_lat=49.95, max_lon=-120)
+    return False
+
+
+lat = 49.456412
+lon = -123.186007
+
+lat=50.081282
+lon=-122.869549
+dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
+dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
+dem_path = get_dem(dem_paths, lon, lat)
+dataset = gdal.Open(dem_path)
+x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
+print x, y
+values = calculate_point(dataset, x, y)
+print values
 
