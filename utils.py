@@ -96,19 +96,34 @@ def get_dem(dem_paths, lon, lat):
 
     return False
 
+def load_dataset(dem_paths, lon, lat):
+    """
+    Simple convenience method to wrap the initialization of a dem file into a dataset
+    """
+    dem_path = get_dem(dem_paths, lon, lat)
+    return gdal.Open(dem_path)
 
-lat = 49.456412
-lon = -123.186007
+
+#lat = 49.456412
+#lon = -123.186007
+#
+#lat=50
+#lon=-122
+#dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
+#dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
+#dem_path = get_dem(dem_paths, lon, lat)
+#print dem_path
+#dataset = gdal.Open(dem_path)
+#x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
+#print x, y
+#values = altitude_at_raster_point(dataset, x, y)
+#print values
+#
 
 lat=50
 lon=-122
 dem_files='a10g,b10g,c10g,d10g,e10g,f10g,g10g,h10g,i10g,j10g,k10g,l10g,m10g,n10g,o10g,p10g'
 dem_paths = [os.path.join('store', dem_file) for dem_file in dem_files.split(',')]
-dem_path = get_dem(dem_paths, lon, lat)
-print dem_path
-dataset = gdal.Open(dem_path)
-x, y = geographic_coordinates_to_raster_points(dataset, lon, lat)
-print x, y
-values = altitude_at_raster_point(dataset, x, y)
-print values
+dataset = load_dataset(dem_paths, lon, lat)
+print altitude_at_geographic_coordinates(dataset, lon, lat)
 
